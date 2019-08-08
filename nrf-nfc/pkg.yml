@@ -1,0 +1,25 @@
+pkg.name: lib/nrf-nfc
+pkg.description: "NFC Library for the nRF52 Family"
+pkg.author: "Jeremy Wood <jeremy@proxy.com>"
+pkg.homepage: "https://proxy.com"
+pkg.keywords: nrf, nfc
+
+pkg.deps:
+  - "@apache-mynewt-core/kernel/os"
+  - "@apache-mynewt-core/sys/log/modlog"
+  - "@apache-mynewt-core/hw/hal"
+  - "@apache-mynewt-core/hw/mcu/nordic/nrf52xxx"
+
+pkg.req_apis:
+    - log
+
+pkg.cflags:
+  - "-DNFC_NDEF_MSG_TAG_TYPE=4"
+  - "-DNFC_NDEF_RECORD_ENABLED"
+  - "-DNFC_NDEF_URI_MSG_ENABLED"
+  - "-DNFC_NDEF_URI_REC_ENABLED"
+  - "-DNRF52832_XXAA"
+  - "-DHAL_NFC_FIELD_TIMER_PERIOD=100"
+
+pkg.init:
+    nrf_nfc_pkg_init: 500

@@ -1,0 +1,7 @@
+syscfg.defs:
+    NRF_NFC_T4_IRQ_PRIORITY:
+        description: 'NFC interrupt priority'
+        value: 6
+
+    NRF_NFC_LOG_MODULE:
+      value: 222
