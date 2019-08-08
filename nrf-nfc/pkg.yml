@@ -1,4 +1,4 @@
-pkg.name: lib/nrf-nfc
+pkg.name: "nrf-nfc"
 pkg.description: "NFC Library for the nRF52 Family"
 pkg.author: "Jeremy Wood <jeremy@proxy.com>"
 pkg.homepage: "https://proxy.com"
