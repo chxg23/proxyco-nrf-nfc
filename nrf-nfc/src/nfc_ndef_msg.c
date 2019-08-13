@@ -40,7 +40,7 @@
 //#include "sdk_common.h"
 
 #include "app_util.h"
-#include "nrf-nfc/nfc_ndef_msg.h"
+#include "nfc_ndef_msg.h"
 #include "nordic_common.h"
 #include <nrf.h>
 

@@ -55,7 +55,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "nrf-nfc/sdk_errors.h"
+#include "sdk_errors.h"
 
 #ifdef __cplusplus
 extern "C" {

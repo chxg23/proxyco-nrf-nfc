@@ -50,9 +50,9 @@
  *
  */
 
-#include "nrf-nfc/nfc_ndef_msg.h"
-#include "nrf-nfc/nfc_uri_rec.h"
-#include "nrf-nfc/nrf_error.h"
+#include "nfc_ndef_msg.h"
+#include "nfc_uri_rec.h"
+#include "nrf_error.h"
 
 #ifdef __cplusplus
 extern "C" {

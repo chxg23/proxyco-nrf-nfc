@@ -40,7 +40,7 @@
 #include "nordic_common.h"
 
 #include <string.h>
-#include "nrf-nfc/nfc_ndef_record.h"
+#include "nfc_ndef_record.h"
 #include "app_util.h"
 #include <nrf.h>
 

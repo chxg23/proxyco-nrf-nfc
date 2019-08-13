@@ -39,7 +39,7 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
-#include "nrf-nfc/nfc_ndef_record_parser.h"
+#include "nfc_ndef_record_parser.h"
 #include "app_util.h"
 #include "nordic_common.h"
 

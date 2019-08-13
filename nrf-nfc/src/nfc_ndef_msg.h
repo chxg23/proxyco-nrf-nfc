@@ -40,7 +40,7 @@
 #ifndef NFC_NDEF_MSG_H__
 #define NFC_NDEF_MSG_H__
 
-#include "nrf-nfc/nfc_ndef_record.h"
+#include "nfc_ndef_record.h"
 
 #ifdef __cplusplus
 extern "C" {

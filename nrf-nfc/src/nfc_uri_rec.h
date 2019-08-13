@@ -50,7 +50,7 @@
  *
  */
 
-#include "nrf-nfc/nfc_ndef_record.h"
+#include "nfc_ndef_record.h"
 
 #ifdef __cplusplus
 extern "C" {

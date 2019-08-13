@@ -40,7 +40,7 @@
 
 #include "syscfg/syscfg.h"
 #include "hal_nfc_t4t.h"
-#include "nrf-nfc/nfc_t4t_lib.h"
+#include "nfc_t4t_lib.h"
 #include "nfc_fixes.h"
 #include <nrf.h>
 //#include "app_util_platform.h"

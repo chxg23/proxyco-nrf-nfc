@@ -40,7 +40,7 @@
 //#include "sdk_common.h"
 
 #include <string.h>
-#include "nrf-nfc/nfc_uri_msg.h"
+#include "nfc_uri_msg.h"
 #include "sdk_macros.h"
 
 ret_code_t nfc_uri_msg_encode(nfc_uri_id_t          uri_id_code,

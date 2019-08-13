@@ -38,8 +38,8 @@
  *
  */
 #include <string.h>
-#include "nrf-nfc/nfc_text_rec.h"
-#include "nrf-nfc/nrf_error.h"
+#include "nfc_text_rec.h"
+#include "nrf_error.h"
 
 #define TEXT_REC_STATUS_SIZE          1     ///< Size of the status.
 #define TEXT_REC_STATUS_UTF_POS       7     ///< Position of a character encoding type.

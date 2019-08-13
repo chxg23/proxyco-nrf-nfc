@@ -51,8 +51,8 @@
  */
 
 #include <stdint.h>
-#include "nrf-nfc/nfc_ndef_msg.h"
-#include "nrf-nfc/nfc_ndef_record_parser.h"
+#include "nfc_ndef_msg.h"
+#include "nfc_ndef_record_parser.h"
 
 #ifdef __cplusplus
 extern "C" {

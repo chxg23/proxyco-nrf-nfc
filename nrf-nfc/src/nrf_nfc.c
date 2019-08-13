@@ -17,8 +17,8 @@
 
 #include "nrf-nfc/nrf_nfc.h"
 #include "nrf-nfc/nrf_nfc_log.h"
-#include "nrf-nfc/nfc_t4t_lib.h"
-#include "nrf-nfc/nfc_uri_msg.h"
+#include "nfc_t4t_lib.h"
+#include "nfc_uri_msg.h"
 
 #define NDEF_BUF_SIZE (256)
 static uint8_t ndef_buffer[NDEF_BUF_SIZE];

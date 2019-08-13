@@ -40,8 +40,8 @@
 //#include "sdk_common.h"
 
 #include <string.h>
-#include "nrf-nfc/nfc_uri_rec.h"
-#include "nrf-nfc/nrf_error.h"
+#include "nfc_uri_rec.h"
+#include "nrf_error.h"
 
 const uint8_t ndef_uri_record_type = 'U'; ///< URI Record type.
 

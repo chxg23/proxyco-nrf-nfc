@@ -70,7 +70,7 @@
 #define SDK_ERRORS_H__
 
 #include <stdint.h>
-#include "nrf-nfc/nrf_error.h"
+#include "nrf_error.h"
 
 #ifdef __cplusplus
 extern "C" {

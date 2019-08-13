@@ -37,7 +37,7 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "nrf-nfc/nfc_ndef_msg_parser.h"
+#include "nfc_ndef_msg_parser.h"
 
 #define NRF_LOG_MODULE_NAME nfc_ndef_msg_parser
 #if NFC_NDEF_MSG_PARSER_LOG_ENABLED

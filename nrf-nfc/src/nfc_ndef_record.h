@@ -43,7 +43,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <compiler_abstraction.h>
-#include "nrf-nfc/sdk_errors.h"
+#include "sdk_errors.h"
 #include <nrf.h>
 
 #ifdef __cplusplus
