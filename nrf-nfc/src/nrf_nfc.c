@@ -129,6 +129,16 @@ static void
 nfc_event_callback(void *p_context, nfc_t4t_event_t event, const uint8_t *p_data,
     size_t data_length, uint32_t flags)
 {
+#if MYNEWT_VAL(DEBUG_BUILD)
+  NRF_NFC_LOG(DEBUG, "nrf-nfc: nfc_event_callback() event=%d, data_length=%d, flags=%d, p_data=",
+      event, data_length, flags);
+  if (data_length > 0 && p_data != NULL) {
+    for (int i = 0; i < data_length; i++) {
+      printf("%02x", p_data[i]);
+    }
+  }
+  printf(".\n");
+#endif
 }
 
 void
