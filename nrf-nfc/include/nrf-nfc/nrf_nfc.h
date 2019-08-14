@@ -31,8 +31,10 @@ void nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len);
  *
  * @param uid_data        Pointer to UID data
  * @param uid_data_len    Length of UID data in bytes
+ *
+ * @returns 0 on success, non-zero on failure.
  */
-void nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len);
+int nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len);
 
 /**
  * Start NFC Tag Emulation

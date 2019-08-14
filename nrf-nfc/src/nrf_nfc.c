@@ -68,13 +68,17 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
   }
 }
 
-void
+int
 nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
 {
   int i, j;
 
   assert(uid_data != NULL);
-  assert(uid_data_len <= NRF_NFC_UID_MAX_LEN);
+
+  if (uid_data_len > NRF_NFC_UID_MAX_LEN) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
+    return -1;
+  }
 
   memset(uid_buf, 0, sizeof(uid_buf));
 
@@ -93,6 +97,8 @@ nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
   } else {
     uid_size = NRF_NFCT_SENSRES_NFCID1_SIZE_TRIPLE;
   }
+
+  return 0;
 }
 
 void
