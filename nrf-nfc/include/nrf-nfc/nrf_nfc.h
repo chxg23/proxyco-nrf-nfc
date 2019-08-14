@@ -23,8 +23,10 @@ enum {
  *
  * @param uri_data        Pointer to URI data
  * @param uri_data_len    Length of URI data in bytes
+ *
+ * @returns 0 on success, non-zero on failure.
  */
-void nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len);
+int nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len);
 
 /**
  * Set NFC Tag UID.
@@ -38,13 +40,17 @@ int nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len);
 
 /**
  * Start NFC Tag Emulation
+ *
+ * @returns 0 on success, non-zero on failure.
  */
-void nrf_nfc_emulation_start(void);
+int nrf_nfc_emulation_start(void);
 
 /**
  * Stop NFC Tag Emulation
+ *
+ * @returns 0 on success, non-zero on failure.
  */
-void nrf_nfc_emulation_stop(void);
+int nrf_nfc_emulation_stop(void);
 
 /**
  * Present NFC Tag for duration_ms.

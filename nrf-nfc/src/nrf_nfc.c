@@ -20,10 +20,12 @@
 #include "nfc_t4t_lib.h"
 #include "nfc_uri_msg.h"
 
+#define NRF_NFC_ERROR_MAX (10)
+
 #define NDEF_BUF_SIZE (256)
 static uint8_t ndef_buffer[NDEF_BUF_SIZE];
 
-static const uint8_t url[] = "proxy.com";
+static const uint8_t url[] = MYNEWT_VAL(NRF_NFC_DEFAULT_TAG_URI);
 
 /* Local variable to track whether NFC tag emulation is active. */
 static bool nfc_emulation_on = false;
@@ -41,7 +43,7 @@ nfc_tag_present_complete_cb(struct os_event *ev)
   nrf_nfc_emulation_stop();
 }
 
-void
+int
 nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
 {
   ret_code_t rc;
@@ -52,20 +54,34 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
 
   if (nfc_emulation_on) {
     rc = nfc_t4t_emulation_stop();
-    assert(rc == NRF_SUCCESS);
+    if (rc != NRF_SUCCESS) {
+      NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_emulation_stop() failed, rc=%d\n");
+      return rc;
+    }
     renable_emulation = true;
   }
 
   rc = nfc_uri_msg_encode(NFC_URI_HTTPS, uri_data, uri_data_len, ndef_buffer, &buf_len);
-  assert(rc == NRF_SUCCESS);
+  if (rc != 0) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_uri_msg_encode() failed, rc=%d\n");
+    return rc;
+  }
 
   rc = nfc_t4t_ndef_rwpayload_set(ndef_buffer, sizeof(ndef_buffer));
-  assert(rc == NRF_SUCCESS);
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_ndef_rwpayload_set() failed, rc=%d\n");
+    return rc;
+  }
 
   if (renable_emulation) {
     rc = nfc_t4t_emulation_start();
-    assert(rc == NRF_SUCCESS);
+    if (rc != NRF_SUCCESS) {
+      NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_emulation_start() failed, rc=%d\n");
+      return rc;
+    }
   }
+
+  return rc;
 }
 
 int
@@ -101,33 +117,50 @@ nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
   return 0;
 }
 
-void
+int
 nrf_nfc_emulation_start(void)
 {
   ret_code_t rc;
+  static uint8_t err_count = 0;
 
   /* We have to set the UID each time that we turn the emulation on. It gets wiped out when it's
    * turned off. */
   nrf_nfct_nfcid1_set(uid_buf, uid_size);
 
   rc = nfc_t4t_emulation_start();
-  assert(rc == NRF_SUCCESS);
-  nfc_emulation_on = true;
+
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_emulation_start(), failed, rc=%d!\n", rc);
+    err_count++;
+    assert(err_count < NRF_NFC_ERROR_MAX);
+  } else {
+    nfc_emulation_on = true;
+  }
+
+  return rc;
 }
 
-void
+int
 nrf_nfc_emulation_stop(void)
 {
   ret_code_t rc;
+  static uint8_t err_count = 0;
+
   rc = nfc_t4t_emulation_stop();
-  assert(rc == NRF_SUCCESS);
 
-  nfc_emulation_on = false;
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_emulation_stop(), failed, rc=%d!\n", rc);
+    err_count++;
+    assert(err_count < NRF_NFC_ERROR_MAX);
+  } else {
+    nfc_emulation_on = false;
+    /* This makes explicit what happens in the hardware—the UID goes away when the tag emulation
+    * stops. We clear it here to make that explicit, and to make it so that we don't inadvertently
+    * deliver the same credential again. */
+    memset(uid_buf, 0, sizeof(uid_buf));
+  }
 
-  /* This makes explicit what happens in the hardware—the UID goes away when the tag emulation
-   * stops. We clear it here to make that explicit, and to make it so that we don't inadvertently
-   * deliver the same credential again. */
-  memset(uid_buf, 0, sizeof(uid_buf));
+  return rc;
 }
 
 /* We can respond to NFC events here. Currently just a place holder, as library requires a function
@@ -175,5 +208,8 @@ nrf_nfc_pkg_init(void)
   nrf_nfct_nfcid1_set(uid_buf, uid_size);
 
   /* Initialize tag with default URI. */
-  nrf_nfc_set_tag_uri((uint8_t *)url, sizeof(url));
+  rc = nrf_nfc_set_tag_uri((uint8_t *)url, sizeof(url));
+  if (rc != 0) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uri() failed, rc=%d\n");
+  }
 }

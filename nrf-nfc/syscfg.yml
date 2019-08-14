@@ -1,7 +1,11 @@
 syscfg.defs:
-    NRF_NFC_T4_IRQ_PRIORITY:
-        description: 'NFC interrupt priority'
-        value: 6
+  NRF_NFC_DEFAULT_TAG_URI:
+    description: 'Default NFC Tag URI String'
+    value: '"proxy.com"'
 
-    NRF_NFC_LOG_MODULE:
-      value: 222
+  NRF_NFC_T4_IRQ_PRIORITY:
+    description: 'NFC interrupt priority'
+    value: 6
+
+  NRF_NFC_LOG_MODULE:
+    value: 222
