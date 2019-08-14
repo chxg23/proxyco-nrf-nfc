@@ -25,6 +25,7 @@ static uint8_t ndef_buffer[NDEF_BUF_SIZE];
 
 static const uint8_t url[] = "proxy.com";
 
+/* Local variable to track whether NFC tag emulation is active. */
 static bool nfc_emulation_on = false;
 
 static struct os_callout tag_present_complete_callout;
