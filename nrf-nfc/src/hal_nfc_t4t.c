@@ -38,27 +38,16 @@
  *
  */
 
+#include <assert.h>
 #include "syscfg/syscfg.h"
+#include "nrf-nfc/nrf_nfc_log.h"
 #include "hal_nfc_t4t.h"
 #include "nfc_t4t_lib.h"
 #include "nfc_fixes.h"
 #include <nrf.h>
-//#include "app_util_platform.h"
-#include "nordic_common.h"
-#include "nrf_assert.h"
-#include <mcu/nrf52_clock.h>
 
-#define NRF_LOG_MODULE_NAME hal_nfc
-#if HAL_NFC_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       HAL_NFC_CONFIG_LOG_LEVEL
-#define NRF_LOG_INFO_COLOR  HAL_NFC_CONFIG_INFO_COLOR
-#define NRF_LOG_DEBUG_COLOR HAL_NFC_CONFIG_DEBUG_COLOR
-#include "nrf_log.h"
-NRF_LOG_MODULE_REGISTER();
-#else // HAL_NFC_CONFIG_LOG_ENABLED
-#define NRF_LOG_LEVEL       0
-#include "nrf_log.h"
-#endif // HAL_NFC_CONFIG_LOG_ENABLED
+#include "nordic_common.h"
+#include <mcu/nrf52_clock.h>
 
 #if HAL_NFC_CONFIG_DEBUG_PIN_ENABLED
 #include "nrf_gpio.h"
@@ -318,7 +307,7 @@ static inline void hal_nfc_common_hw_setup()
 
   /* Set FRAMEDELAYMAX to default setting */
   ret_code_t err_code = hal_nfc_parameter_set(HAL_NFC_PARAM_FWI, (void *) &m_fwi, sizeof(m_fwi));
-  ASSERT(err_code == NRF_SUCCESS);
+  assert(err_code == NRF_SUCCESS);
 
   /* Set PROTOCOL bits for Type 4A Tag */
   NRF_NFCT->SELRES =

@@ -49,8 +49,6 @@
 #ifndef SDK_MACROS_H__
 #define SDK_MACROS_H__
 
-#include "nrf_assert.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
