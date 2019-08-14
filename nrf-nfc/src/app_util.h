@@ -384,19 +384,6 @@ typedef struct {
  */
 #define GET_ARG_2(a1, a2) a2
 
-/**@brief Container of macro (borrowed from Linux kernel).
- *
- * This macro returns parent structure address basing on child member address.
- *
- * @param ptr       Address of child type.
- * @param type      Type of parent structure.
- * @param member    Name of child field in parent structure.
- *
- * @return Parent structure address.
- * */
-#define CONTAINER_OF(ptr, type, member)                 \
-        (type *)((char *)ptr - offsetof(type, member))
-
 /**
  * @brief Define Bit-field mask
  *

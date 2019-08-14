@@ -141,10 +141,6 @@ extern "C" {
  */
 #define STRINGIFY(val)  STRINGIFY_(val)
 
-/** Counts number of elements inside the array
- */
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-
 /**@brief Set a bit in the uint32 word.
  *
  * @param[in] W  Word whose bit is being set.
