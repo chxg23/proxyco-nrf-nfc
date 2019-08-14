@@ -39,20 +39,11 @@
  */
 #include <stdint.h>
 #include <stdbool.h>
+#include "nrf-nfc/nrf_nfc_log.h"
 #include "nfc_ndef_record_parser.h"
 #include "app_util.h"
 #include "nordic_common.h"
 
-#define NRF_LOG_MODULE_NAME nfc_ndef_parser
-#if NFC_NDEF_RECORD_PARSER_LOG_ENABLED
-#define NRF_LOG_LEVEL       NFC_NDEF_RECORD_PARSER_LOG_LEVEL
-#define NRF_LOG_INFO_COLOR  NFC_NDEF_RECORD_PARSER_INFO_COLOR
-#include "nrf_log.h"
-NRF_LOG_MODULE_REGISTER();
-#else // NFC_NDEF_RECORD_PARSER_LOG_ENABLED
-#define NRF_LOG_LEVEL       0
-#include "nrf_log.h"
-#endif // NFC_NDEF_RECORD_PARSER_LOG_ENABLED
 
 /* Sum of sizes of fields: TNF-flags, Type Length, Payload Length in short NDEF record. */
 #define NDEF_RECORD_BASE_LONG_SHORT (2 + NDEF_RECORD_PAYLOAD_LEN_SHORT_SIZE)
