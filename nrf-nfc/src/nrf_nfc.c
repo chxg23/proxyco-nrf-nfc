@@ -32,9 +32,16 @@ static bool nfc_emulation_on = false;
 
 static struct os_callout tag_present_complete_callout;
 
-/* Globals for UID and UID size. */
+/* Raw UID data buffer. Up to NRF_NFC_UID_MAX_LEN (10) bytes, this field holds the UID credential
+ * while it's being presented. Data is zero-padded, right-aligned, little-endian in the current
+ * UID field-size (4, 7, or 10 bytes).
+ *
+ * For example, 0xbaadbeef would look like this:
+ *
+ * ef be ad ba 00 00 00 00 00 00
+ */
 static uint8_t uid_buf[NRF_NFC_UID_MAX_LEN] = {0};
-static nrf_nfct_sensres_nfcid1_size_t uid_size = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
+static nrf_nfct_sensres_nfcid1_size_t uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
 
 static void
 nfc_tag_present_complete_cb(struct os_event *ev)
@@ -88,8 +95,15 @@ int
 nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
 {
   int i, j;
+  uint8_t uid_field_len;
 
   assert(uid_data != NULL);
+
+  NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d, uid_data=");
+  for (i = 0; i < uid_data_len; i++) {
+    printf("%02x", uid_data[i]);
+  }
+  printf(".\n");
 
   if (uid_data_len > NRF_NFC_UID_MAX_LEN) {
     NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
@@ -98,20 +112,23 @@ nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
 
   memset(uid_buf, 0, sizeof(uid_buf));
 
-  /* UID byte-order is backwards. */
-  j = NRF_NFC_UID_MAX_LEN - 1;
-  for (i = 0; i < uid_data_len && i < NRF_NFC_UID_MAX_LEN; i++) {
-    uid_buf[j] = uid_data[i];
-    j--;
+  /* Set the NFC UID size class and field length based on uid_data_len. */
+  if (uid_data_len <= NRF_NFC_UID_SINGLE_4_BYTE) {
+    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
+    uid_field_len = NRF_NFC_UID_SINGLE_4_BYTE;
+  } else if (uid_data_len <= NRF_NFC_UID_DOUBLE_7_BYTE) {
+    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_DOUBLE;
+    uid_field_len = NRF_NFC_UID_DOUBLE_7_BYTE;
+  } else {
+    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_TRIPLE;
+    uid_field_len = NRF_NFC_UID_TRIPLE_10_BYTE;
   }
 
-  /* Set the NFC UID size class. */
-  if (uid_data_len <= NRF_NFC_UID_SINGLE_4_BYTE) {
-    uid_size = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
-  } else if (uid_data_len <= NRF_NFC_UID_DOUBLE_7_BYTE) {
-    uid_size = NRF_NFCT_SENSRES_NFCID1_SIZE_DOUBLE;
-  } else {
-    uid_size = NRF_NFCT_SENSRES_NFCID1_SIZE_TRIPLE;
+  /* UID byte-order is little-endian, credentials are sent big-endian. */
+  j = uid_field_len - 1;
+  for (i = 0; i < uid_data_len && i < uid_field_len; i++) {
+    uid_buf[j] = uid_data[i];
+    j--;
   }
 
   return 0;
@@ -123,9 +140,15 @@ nrf_nfc_emulation_start(void)
   ret_code_t rc;
   static uint8_t err_count = 0;
 
+  NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_emulation_start(), uid_size_class=%d, uid_buf=");
+  for (int i = 0; i < NRF_NFC_UID_MAX_LEN; i++) {
+    printf("%02x", uid_buf[i]);
+  }
+  printf(".\n");
+
   /* We have to set the UID each time that we turn the emulation on. It gets wiped out when it's
    * turned off. */
-  nrf_nfct_nfcid1_set(uid_buf, uid_size);
+  nrf_nfct_nfcid1_set(uid_buf, uid_size_class);
 
   rc = nfc_t4t_emulation_start();
 
@@ -205,7 +228,7 @@ nrf_nfc_pkg_init(void)
   assert(rc == NRF_SUCCESS);
 
   /* Set empty initial UID, default size. */
-  nrf_nfct_nfcid1_set(uid_buf, uid_size);
+  nrf_nfct_nfcid1_set(uid_buf, uid_size_class);
 
   /* Initialize tag with default URI. */
   rc = nrf_nfc_set_tag_uri((uint8_t *)url, sizeof(url));
