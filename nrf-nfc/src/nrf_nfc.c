@@ -146,12 +146,17 @@ nrf_nfc_emulation_start(void)
   }
   printf(".\n");
 
-  /* We have to set the UID each time that we turn the emulation on. It gets wiped out when it's
+  /* We set the UID and payload each time that we turn the emulation on. It gets wiped out when it's
    * turned off. */
   nrf_nfct_nfcid1_set(uid_buf, uid_size_class);
 
-  rc = nfc_t4t_emulation_start();
+  rc = nfc_t4t_ndef_rwpayload_set(ndef_buffer, sizeof(ndef_buffer));
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_ndef_rwpayload_set() failed, rc=%d\n");
+    return rc;
+  }
 
+  rc = nfc_t4t_emulation_start();
   if (rc != NRF_SUCCESS) {
     NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_emulation_start(), failed, rc=%d!\n", rc);
     err_count++;
