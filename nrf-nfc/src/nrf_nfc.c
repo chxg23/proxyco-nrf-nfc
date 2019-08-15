@@ -209,14 +209,20 @@ nfc_event_callback(void *p_context, nfc_t4t_event_t event, const uint8_t *p_data
 #endif
 }
 
-void
+int
 nrf_nfc_present_tag(uint16_t duration_ms)
 {
   NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_present_tag()\n");
 
-  nrf_nfc_emulation_start();
+  if (os_callout_queued(&tag_present_complete_callout)) {
+    NRF_NFC_LOG(WARN, "nrf-nfc: nrf_nfc_present_tag() tag already being presented!\n");
+    return -1;
+  } else {
+    nrf_nfc_emulation_start();
+    os_callout_reset(&tag_present_complete_callout, ms_to_os_ticks(duration_ms));
+  }
 
-  os_callout_reset(&tag_present_complete_callout, ms_to_os_ticks(duration_ms));
+  return 0;
 }
 
 void
