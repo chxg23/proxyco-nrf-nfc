@@ -7,5 +7,9 @@ syscfg.defs:
     description: 'NFC interrupt priority'
     value: 6
 
+  NRF_NFC_FIELDTIMER_PERIOD:
+    description: 'NFC field timer period'
+    value: 100
+
   NRF_NFC_LOG_MODULE:
     value: 222
