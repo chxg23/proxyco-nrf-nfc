@@ -18,10 +18,7 @@
 #include "nfc_t4t_lib.h"
 #include "nfc_uri_msg.h"
 
-#define NRF_NFC_ERROR_MAX (10)
-
-#define NDEF_BUF_SIZE (256)
-static uint8_t ndef_buffer[NDEF_BUF_SIZE];
+static uint8_t ndef_buffer[MYNEWT_VAL(NRF_NFC_NDEF_BUF_SIZE)];
 
 static const uint8_t url[] = MYNEWT_VAL(NRF_NFC_DEFAULT_TAG_URI);
 
@@ -89,7 +86,8 @@ nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
   assert(uid_data != NULL);
 
   if (uid_data_len > NRF_NFC_UID_MAX_LEN) {
-    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
+    NRF_NFC_LOG(INFO,
+        "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
     return -1;
   }
 
@@ -136,7 +134,7 @@ nrf_nfc_emulation_start(void)
   if (rc != NRF_SUCCESS) {
     NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_emulation_start(), failed, rc=%d!\n", rc);
     err_count++;
-    assert(err_count < NRF_NFC_ERROR_MAX);
+    assert(err_count < MYNEWT_VAL(NRF_NFC_ERROR_MAX));
   } else {
     nfc_emulation_on = true;
   }
@@ -155,7 +153,7 @@ nrf_nfc_emulation_stop(void)
   if (rc != NRF_SUCCESS) {
     NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_emulation_stop(), failed, rc=%d!\n", rc);
     err_count++;
-    assert(err_count < NRF_NFC_ERROR_MAX);
+    assert(err_count < MYNEWT_VAL(NRF_NFC_ERROR_MAX));
   } else {
     nfc_emulation_on = false;
   }

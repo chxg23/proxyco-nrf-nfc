@@ -3,9 +3,17 @@ syscfg.defs:
     description: 'Default NFC Tag URI String'
     value: '"proxy.com"'
 
+  NRF_NFC_NDEF_BUF_SIZE:
+    description: 'Size of NFC NDEF buffer in bytes'
+    value: 128
+
   NRF_NFC_T4_IRQ_PRIORITY:
     description: 'NFC interrupt priority'
     value: 6
+
+  NRF_NFC_ERROR_MAX:
+    description: 'Max number of NFC errors before asserting'
+    value: 10
 
   NRF_NFC_FIELDTIMER_PERIOD:
     description: 'NFC field timer period'
