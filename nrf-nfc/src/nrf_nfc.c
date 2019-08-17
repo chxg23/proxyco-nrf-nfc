@@ -13,8 +13,6 @@
 
 #include <util/util.h>
 
-#include "nrf_nfct.h"
-
 #include "nrf-nfc/nrf_nfc.h"
 #include "nrf-nfc/nrf_nfc_log.h"
 #include "nfc_t4t_lib.h"
@@ -31,17 +29,6 @@ static const uint8_t url[] = MYNEWT_VAL(NRF_NFC_DEFAULT_TAG_URI);
 static bool nfc_emulation_on = false;
 
 static struct os_callout tag_present_complete_callout;
-
-/* Raw UID data buffer. Up to NRF_NFC_UID_MAX_LEN (10) bytes, this field holds the UID credential
- * while it's being presented. Data is zero-padded, right-aligned, little-endian in the current
- * UID field-size (4, 7, or 10 bytes).
- *
- * For example, 0xbaadbeef would look like this:
- *
- * ef be ad ba 00 00 00 00 00 00
- */
-static uint8_t uid_buf[NRF_NFC_UID_MAX_LEN] = {0};
-static nrf_nfct_sensres_nfcid1_size_t uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
 
 static void
 nfc_tag_present_complete_cb(struct os_event *ev)
@@ -74,9 +61,9 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
     return rc;
   }
 
-  rc = nfc_t4t_ndef_rwpayload_set(ndef_buffer, sizeof(ndef_buffer));
+  rc = nfc_t4t_ndef_staticpayload_set(ndef_buffer, sizeof(ndef_buffer));
   if (rc != NRF_SUCCESS) {
-    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_ndef_rwpayload_set() failed, rc=%d\n");
+    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_ndef_staticpayload_set() failed, rc=%d\n");
     return rc;
   }
 
@@ -94,10 +81,17 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
 int
 nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
 {
+  ret_code_t rc;
   int i, j;
-  uint8_t uid_field_len;
+  uint8_t uid_buf[NRF_NFC_UID_MAX_LEN];
+  uint8_t uid_size;
 
   assert(uid_data != NULL);
+
+  if (uid_data_len > NRF_NFC_UID_MAX_LEN) {
+    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
+    return -1;
+  }
 
   NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d, uid_data=");
   for (i = 0; i < uid_data_len; i++) {
@@ -105,33 +99,31 @@ nrf_nfc_set_tag_uid(uint8_t *uid_data, uint8_t uid_data_len)
   }
   printf(".\n");
 
-  if (uid_data_len > NRF_NFC_UID_MAX_LEN) {
-    NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uid(), uid_data_len=%d > NRF_NFC_UID_MAX_LEN!, uid_data_len\n");
-    return -1;
-  }
-
   memset(uid_buf, 0, sizeof(uid_buf));
 
   /* Set the NFC UID size class and field length based on uid_data_len. */
   if (uid_data_len <= NRF_NFC_UID_SINGLE_4_BYTE) {
-    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_SINGLE;
-    uid_field_len = NRF_NFC_UID_SINGLE_4_BYTE;
+    uid_size = NRF_NFC_UID_SINGLE_4_BYTE;
   } else if (uid_data_len <= NRF_NFC_UID_DOUBLE_7_BYTE) {
-    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_DOUBLE;
-    uid_field_len = NRF_NFC_UID_DOUBLE_7_BYTE;
+    uid_size = NRF_NFC_UID_DOUBLE_7_BYTE;
   } else {
-    uid_size_class = NRF_NFCT_SENSRES_NFCID1_SIZE_TRIPLE;
-    uid_field_len = NRF_NFC_UID_TRIPLE_10_BYTE;
+    uid_size = NRF_NFC_UID_TRIPLE_10_BYTE;
   }
 
   /* UID byte-order is little-endian, credentials are sent big-endian. */
-  j = uid_field_len - 1;
-  for (i = 0; i < uid_data_len && i < uid_field_len; i++) {
+  j = uid_size - 1;
+  for (i = 0; i < uid_data_len && i < uid_size; i++) {
     uid_buf[j] = uid_data[i];
     j--;
   }
 
-  return 0;
+  /* Set UID in tag emulation library. */
+  rc = nfc_t4t_parameter_set(NFC_T4T_PARAM_NFCID1, uid_buf, uid_size);
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(CRITICAL, "nrf-nfc: nfc_t4t_parameter_set() failed, rc=%d\n", rc);
+  }
+
+  return rc;
 }
 
 int
@@ -139,22 +131,6 @@ nrf_nfc_emulation_start(void)
 {
   ret_code_t rc;
   static uint8_t err_count = 0;
-
-  NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_emulation_start(), uid_size_class=%d, uid_buf=");
-  for (int i = 0; i < NRF_NFC_UID_MAX_LEN; i++) {
-    printf("%02x", uid_buf[i]);
-  }
-  printf(".\n");
-
-  /* We set the UID and payload each time that we turn the emulation on. It gets wiped out when it's
-   * turned off. */
-  nrf_nfct_nfcid1_set(uid_buf, uid_size_class);
-
-  rc = nfc_t4t_ndef_rwpayload_set(ndef_buffer, sizeof(ndef_buffer));
-  if (rc != NRF_SUCCESS) {
-    NRF_NFC_LOG(INFO, "nrf-nfc: nfc_t4t_ndef_rwpayload_set() failed, rc=%d\n");
-    return rc;
-  }
 
   rc = nfc_t4t_emulation_start();
   if (rc != NRF_SUCCESS) {
@@ -182,10 +158,6 @@ nrf_nfc_emulation_stop(void)
     assert(err_count < NRF_NFC_ERROR_MAX);
   } else {
     nfc_emulation_on = false;
-    /* This makes explicit what happens in the hardware—the UID goes away when the tag emulation
-    * stops. We clear it here to make that explicit, and to make it so that we don't inadvertently
-    * deliver the same credential again. */
-    memset(uid_buf, 0, sizeof(uid_buf));
   }
 
   return rc;
@@ -198,7 +170,7 @@ nfc_event_callback(void *p_context, nfc_t4t_event_t event, const uint8_t *p_data
     size_t data_length, uint32_t flags)
 {
 #if MYNEWT_VAL(DEBUG_BUILD)
-  NRF_NFC_LOG(DEBUG, "nrf-nfc: nfc_event_callback() event=%d, data_length=%d, flags=%d, p_data=",
+  NRF_NFC_LOG(INFO, "nrf-nfc: nfc_event_callback() event=%d, data_length=%d, flags=%d, p_data=",
       event, data_length, flags);
   if (data_length > 0 && p_data != NULL) {
     for (int i = 0; i < data_length; i++) {
@@ -229,21 +201,27 @@ void
 nrf_nfc_pkg_init(void)
 {
   ret_code_t rc;
+  uint8_t uid_buf[NRF_NFC_UID_SINGLE_4_BYTE];
 
   NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_pkg_init()\n");
 
   os_callout_init(&tag_present_complete_callout, os_eventq_dflt_get(),
       nfc_tag_present_complete_cb, NULL);
 
-  rc = nfc_t4t_setup(nfc_event_callback, NULL);
-  assert(rc == NRF_SUCCESS);
-
-  /* Set empty initial UID, default size. */
-  nrf_nfct_nfcid1_set(uid_buf, uid_size_class);
+  /* Initialize UID all-zero. */
+  memset(uid_buf, 0, sizeof(uid_buf));
+  rc = nfc_t4t_parameter_set(NFC_T4T_PARAM_NFCID1, uid_buf, NRF_NFC_UID_SINGLE_4_BYTE);
+  if (rc != NRF_SUCCESS) {
+    NRF_NFC_LOG(CRITICAL, "nrf-nfc: nfc_t4t_parameter_set() failed, rc=%d\n", rc);
+  }
 
   /* Initialize tag with default URI. */
   rc = nrf_nfc_set_tag_uri((uint8_t *)url, sizeof(url));
   if (rc != 0) {
     NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_set_tag_uri() failed, rc=%d\n");
   }
+
+  /* Finalize initialization of nfc_t4t_lib. */
+  rc = nfc_t4t_setup(nfc_event_callback, NULL);
+  assert(rc == NRF_SUCCESS);
 }
