@@ -9,13 +9,14 @@
 
 #include <stdint.h>
 
-/* NFC UID can be these sizes. */
+/* The NFC UID can be one of three different sizes: Either 4, 7 or 10 bytes. */
 enum {
   NRF_NFC_UID_SINGLE_4_BYTE = 4,
   NRF_NFC_UID_DOUBLE_7_BYTE = 7,
   NRF_NFC_UID_TRIPLE_10_BYTE = 10
 };
 
+/* The maximum NFC UID length is NRF_NFC_UID_TRIPLE_10_BYTE (10) bytes. */
 #define NRF_NFC_UID_MAX_LEN (NRF_NFC_UID_TRIPLE_10_BYTE)
 
 /**
@@ -55,7 +56,7 @@ int nrf_nfc_emulation_stop(void);
 /**
  * Present NFC Tag for duration_ms.
  *
- * @param duration_ms    Time in milleseconds to present tag for reading.
+ * @param duration_ms    Time in milliseconds to present tag for reading.
  *
  * @returns 0 on success, non-zero on failure.
  */
