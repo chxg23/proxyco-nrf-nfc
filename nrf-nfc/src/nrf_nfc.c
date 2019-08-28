@@ -47,7 +47,7 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
     rc = nfc_t4t_emulation_stop();
     if (rc != NRF_SUCCESS) {
       NRF_NFC_LOG(WARN, "nrf-nfc: nfc_t4t_emulation_stop() failed, rc=%d\n");
-      return rc;
+      return -1;
     }
     renable_emulation = true;
   }
@@ -55,24 +55,24 @@ nrf_nfc_set_tag_uri(uint8_t *uri_data, uint8_t uri_data_len)
   rc = nfc_uri_msg_encode(NFC_URI_HTTPS, uri_data, uri_data_len, ndef_buffer, &buf_len);
   if (rc != 0) {
     NRF_NFC_LOG(WARN, "nrf-nfc: nfc_uri_msg_encode() failed, rc=%d\n");
-    return rc;
+    return -1;
   }
 
   rc = nfc_t4t_ndef_staticpayload_set(ndef_buffer, sizeof(ndef_buffer));
   if (rc != NRF_SUCCESS) {
     NRF_NFC_LOG(WARN, "nrf-nfc: nfc_t4t_ndef_staticpayload_set() failed, rc=%d\n");
-    return rc;
+    return -1;
   }
 
   if (renable_emulation) {
     rc = nfc_t4t_emulation_start();
     if (rc != NRF_SUCCESS) {
       NRF_NFC_LOG(WARN, "nrf-nfc: nfc_t4t_emulation_start() failed, rc=%d\n");
-      return rc;
+      return -1;
     }
   }
 
-  return rc;
+  return 0;
 }
 
 int
@@ -208,6 +208,10 @@ nrf_nfc_pkg_init(void)
   os_callout_init(&tag_present_complete_callout, os_eventq_dflt_get(),
       nfc_tag_present_complete_cb, NULL);
 
+  /* Initialize nfc_t4t_lib, must be done before setting parameters and URI. */
+  rc = nfc_t4t_setup(nfc_event_callback, NULL);
+  assert(rc == NRF_SUCCESS);
+
   /* Initialize UID all-zero. */
   memset(uid_buf, 0, sizeof(uid_buf));
   rc = nfc_t4t_parameter_set(NFC_T4T_PARAM_NFCID1, uid_buf, NRF_NFC_UID_SINGLE_4_BYTE);
@@ -221,9 +225,5 @@ nrf_nfc_pkg_init(void)
   if (rc != 0) {
     NRF_NFC_LOG(WARN, "nrf-nfc: nrf_nfc_set_tag_uri() failed, rc=%d\n");
   }
-  assert(rc == NRF_SUCCESS);
-
-  /* Finalize initialization of nfc_t4t_lib. */
-  rc = nfc_t4t_setup(nfc_event_callback, NULL);
-  assert(rc == NRF_SUCCESS);
+  assert(rc == 0);
 }
