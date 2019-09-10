@@ -54,12 +54,14 @@ int nrf_nfc_emulation_start(void);
 int nrf_nfc_emulation_stop(void);
 
 /**
- * Present NFC Tag for duration_ms.
+ * Present NFC Tag for duration_ms, with cooldown_ms.
  *
  * @param duration_ms    Time in milliseconds to present tag for reading.
+ * @param cooldown_ms    Time in milliseconds after tag presentation to block from presenting
+ *                       again.
  *
  * @returns 0 on success, non-zero on failure.
  */
-int nrf_nfc_present_tag(uint16_t duration_ms);
+int nrf_nfc_present_tag(uint16_t duration_ms, uint16_t cooldown_ms);
 
 #endif /* __NRF_NFC_H__ */

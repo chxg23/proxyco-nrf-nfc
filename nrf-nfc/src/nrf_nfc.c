@@ -26,12 +26,19 @@ static const uint8_t uri[] = MYNEWT_VAL(NRF_NFC_DEFAULT_TAG_URI);
 static bool nfc_emulation_on = false;
 
 static struct os_callout tag_present_complete_callout;
+static struct os_callout tag_present_cooldown_complete_callout;
 
 static void
 nfc_tag_present_complete_cb(struct os_event *ev)
 {
   NRF_NFC_LOG(INFO, "nrf-nfc: nfc_tag_present_complete_cb()\n");
   nrf_nfc_emulation_stop();
+}
+
+static void
+nfc_tag_present_cooldown_complete_cb(struct os_event *ev)
+{
+  NRF_NFC_LOG(INFO, "nrf-nfc: nfc_tag_present_cooldown_complete_cb()\n");
 }
 
 int
@@ -182,16 +189,17 @@ nfc_event_callback(void *p_context, nfc_t4t_event_t event, const uint8_t *p_data
 }
 
 int
-nrf_nfc_present_tag(uint16_t duration_ms)
+nrf_nfc_present_tag(uint16_t duration_ms, uint16_t cooldown_ms)
 {
   NRF_NFC_LOG(INFO, "nrf-nfc: nrf_nfc_present_tag()\n");
 
-  if (os_callout_queued(&tag_present_complete_callout)) {
+  if (os_callout_queued(&tag_present_cooldown_complete_callout)) {
     NRF_NFC_LOG(WARN, "nrf-nfc: nrf_nfc_present_tag() tag already being presented!\n");
     return -1;
   } else {
     nrf_nfc_emulation_start();
     os_callout_reset(&tag_present_complete_callout, ms_to_os_ticks(duration_ms));
+    os_callout_reset(&tag_present_cooldown_complete_callout, ms_to_os_ticks(duration_ms + cooldown_ms));
   }
 
   return 0;
@@ -207,6 +215,8 @@ nrf_nfc_pkg_init(void)
 
   os_callout_init(&tag_present_complete_callout, os_eventq_dflt_get(),
       nfc_tag_present_complete_cb, NULL);
+  os_callout_init(&tag_present_cooldown_complete_callout, os_eventq_dflt_get(),
+      nfc_tag_present_cooldown_complete_cb, NULL);
 
   /* Initialize nfc_t4t_lib, must be done before setting parameters and URI. */
   rc = nfc_t4t_setup(nfc_event_callback, NULL);
